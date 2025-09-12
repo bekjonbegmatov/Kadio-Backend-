@@ -32,9 +32,11 @@ class TokenAuthenticationMiddleware(MiddlewareMixin):
                 status=401
             )
         
-        # Extract token (expecting "Bearer <token>" format or just "<token>")
+        # Extract token (expecting "Bearer <token>", "Token <token>" format or just "<token>")
         try:
             if auth_header.startswith('Bearer '):
+                token = auth_header.split(' ')[1]
+            elif auth_header.startswith('Token '):
                 token = auth_header.split(' ')[1]
             else:
                 token = auth_header
@@ -50,6 +52,8 @@ class TokenAuthenticationMiddleware(MiddlewareMixin):
             user.last_active = datetime.now()
             user.save()
             # Add user to request for use in views
+            # Store in custom attribute to avoid Django's AuthenticationMiddleware override
+            request._authenticated_user = user
             request.user = user
             return None
         except UserModel.DoesNotExist:

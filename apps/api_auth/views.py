@@ -1,5 +1,7 @@
 # Django imports
 from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 # Rest Framework imports
 from rest_framework import status
@@ -10,8 +12,10 @@ from rest_framework.views import APIView
 # Local imports
 from .models import UserModel
 from .serializers import UserAuthSerializer, UserSerializer
+from .decorators import token_required
 
 
+@csrf_exempt
 @api_view(['POST'])
 def register_user(request):
     """
@@ -29,6 +33,7 @@ def register_user(request):
         status=status.HTTP_400_BAD_REQUEST
     )
 
+@csrf_exempt
 @api_view(['POST'])
 def login_user(request):
     """
@@ -68,12 +73,75 @@ def get_all_users(request):
 
 
 @api_view(['GET'])
+@token_required
 def get_user_profile(request):
     """
-    Получить профиль текущего пользователя.
-    Этот эндпоинт защищен middleware и требует токен аутентификации.
+    Получить профиль текущего пользователя
     """
-    # Объект пользователя доступен через request.user благодаря middleware
+    # Декоратор уже проверил аутентификацию и установил request.user
     user = request.user
-    serializer = UserSerializer(user)
+    serializer = UserSerializer(user, context={'request': request})
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@csrf_exempt
+@api_view(['PUT'])
+@token_required
+def update_user_profile(request):
+    """
+    Обновление профиля пользователя
+    """
+    # Декоратор уже проверил аутентификацию и установил request.user
+    user = request.user
+    
+    serializer = UserSerializer(user, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@csrf_exempt
+@api_view(['POST'])
+@token_required
+def upload_avatar(request):
+    """
+    Загрузить аватарку для текущего пользователя
+    """
+    # Декоратор уже проверил аутентификацию и установил request.user
+    user = request.user
+    
+    if 'avatar' not in request.FILES:
+        return Response(
+            {'error': 'Файл аватарки не найден'}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    avatar_file = request.FILES['avatar']
+    
+    # Проверка типа файла
+    allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']
+    if avatar_file.content_type not in allowed_types:
+        return Response(
+            {'error': 'Неподдерживаемый тип файла. Разрешены: JPEG, PNG, GIF'}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Проверка размера файла (максимум 5MB)
+    if avatar_file.size > 5 * 1024 * 1024:
+        return Response(
+            {'error': 'Размер файла слишком большой. Максимум 5MB'}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Сохранение аватарки
+    user.avatar = avatar_file
+    user.save()
+    
+    return Response(
+        {
+            'message': 'Аватарка успешно загружена',
+            'avatar_url': request.build_absolute_uri(user.avatar.url) if user.avatar else None
+        }, 
+        status=status.HTTP_200_OK
+    )

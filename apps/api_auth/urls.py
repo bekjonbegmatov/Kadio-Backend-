@@ -9,4 +9,6 @@ urlpatterns = [
     
     # Защищенные эндпоинты (требуют токен)
     path('profile/', views.get_user_profile, name='user_profile'),
+    path('profile/ /', views.update_user_profile, name='update_user_profile'),
+    path('profile/upload-avatar/', views.upload_avatar, name='upload_avatar'),
 ]

@@ -1,4 +1,4 @@
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import ModelSerializer, SerializerMethodField
 from .models import UserModel
 
 class UserAuthSerializer(ModelSerializer):
@@ -19,6 +19,18 @@ class UserAuthSerializer(ModelSerializer):
         }
 
 class UserSerializer(ModelSerializer):
+    avatar_url = SerializerMethodField()
+    
     class Meta:
         model = UserModel
-        fields = ['username', 'email', 'streak_days', 'level', 'interests', 'avatar', 'bio', 'user_time_zone', 'last_active']
+        fields = ['username', 'email', 'streak_days', 'level', 'interests', 'avatar', 'avatar_url', 'bio', 'user_time_zone', 'last_active']
+        extra_kwargs = {'avatar': {'write_only': True}}
+    
+    def get_avatar_url(self, obj):
+        """Возвращает полный URL аватарки пользователя"""
+        if obj.avatar:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.avatar.url)
+            return obj.avatar.url
+        return None
