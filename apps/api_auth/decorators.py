@@ -7,10 +7,21 @@ from .models import UserModel
 def token_required(view_func):
     """
     Декоратор для проверки токена аутентификации.
-    Применяется только к тем view функциям, где нужна аутентификация.
+    Применяется к методам классов APIView и функциям-представлениям.
     """
     @wraps(view_func)
-    def wrapper(request, *args, **kwargs):
+    def wrapper(*args, **kwargs):
+        # Определяем, это метод класса или функция
+        if len(args) > 0 and hasattr(args[0], '__class__') and hasattr(args[0], 'request'):
+            # Это метод класса APIView
+            request = args[1] if len(args) > 1 else kwargs.get('request')
+        else:
+            # Это функция-представление
+            request = args[0] if len(args) > 0 else kwargs.get('request')
+            
+        if not request:
+            return JsonResponse({'error': 'Request object not found'}, status=500)
+            
         # Получаем токен из заголовка Authorization
         auth_header = request.META.get('HTTP_AUTHORIZATION')
         
@@ -40,7 +51,7 @@ def token_required(view_func):
             request.user = user
             request._authenticated_user = user
             
-            return view_func(request, *args, **kwargs)
+            return view_func(*args, **kwargs)
             
         except UserModel.DoesNotExist:
             return JsonResponse(

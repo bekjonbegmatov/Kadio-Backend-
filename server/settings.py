@@ -40,14 +40,17 @@ INSTALLED_APPS = [
     
     # Apps from Modules 
     'rest_framework',
+    'corsheaders',
     
     # Project Apps 
     'apps.api',
     'apps.api_auth',  # Auth System
+    'apps.user_activitys',  # User Activitys
     
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # CORS middleware на самом верху
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -56,6 +59,64 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# CORS Settings - Полностью отключаем все ограничения CORS
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = []
+CORS_ALLOWED_ORIGIN_REGEXES = []
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+    'HEAD',
+    'TRACE',
+    'CONNECT',
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+    'x-forwarded-for',
+    'x-forwarded-proto',
+    'x-real-ip',
+    'cache-control',
+    'pragma',
+    'expires',
+    'if-modified-since',
+    'if-none-match',
+    'access-control-request-method',
+    'access-control-request-headers',
+]
+CORS_EXPOSE_HEADERS = [
+    'access-control-allow-origin',
+    'access-control-allow-credentials',
+    'access-control-allow-methods',
+    'access-control-allow-headers',
+    'access-control-max-age',
+]
+CORS_PREFLIGHT_MAX_AGE = 86400
+CORS_ALLOW_PRIVATE_NETWORK = True
+
+# Дополнительные настройки для полного отключения CORS
+CORS_URLS_REGEX = r'^.*$'
+
+# CSRF Settings - Отключаем CSRF для API
+CSRF_TRUSTED_ORIGINS = ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:8000', 'http://127.0.0.1:8000']
+CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_HTTPONLY = False
+CSRF_USE_SESSIONS = False
+CSRF_COOKIE_SAMESITE = None
 
 ROOT_URLCONF = 'server.urls'
 
