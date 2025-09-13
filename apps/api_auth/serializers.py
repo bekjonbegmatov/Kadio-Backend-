@@ -23,7 +23,7 @@ class UserSerializer(ModelSerializer):
     
     class Meta:
         model = UserModel
-        fields = ['username', 'email', 'streak_days', 'level', 'interests', 'avatar', 'avatar_url', 'bio', 'user_time_zone', 'last_active']
+        fields = ['username', 'email', 'streak_days', 'level', 'interests', 'avatar', 'avatar_url', 'bio', 'user_time_zone', 'last_active', 'full_name', 'link', 'date_of_birth', 'diamonds', 'coins']
         extra_kwargs = {'avatar': {'write_only': True}}
     
     def get_avatar_url(self, obj):

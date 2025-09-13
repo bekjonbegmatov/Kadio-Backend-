@@ -47,6 +47,22 @@ class UserModel(models.Model):
         blank=True,
         verbose_name="Profile picture"
     )
+    full_name = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        verbose_name="Full name"
+    )
+    link = models.URLField(
+        null=True,
+        blank=True,
+        verbose_name="User link"
+    )
+    date_of_birth = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Date of birth"
+    )
     bio = models.TextField(
         null=True,
         blank=True,
@@ -66,6 +82,16 @@ class UserModel(models.Model):
     is_active = models.BooleanField(
         default=True,
         verbose_name="Active status"
+    )
+
+    # Balance
+    diamonds = models.IntegerField(
+        default=0,
+        verbose_name="Diamonds balance"
+    )
+    coins = models.IntegerField(
+        default=0,
+        verbose_name="Coins balance"
     )
 
     # Authentication token
