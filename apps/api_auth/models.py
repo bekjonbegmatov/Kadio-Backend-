@@ -24,7 +24,7 @@ class UserModel(models.Model):
         unique=True,
         verbose_name="Username"
     )
-
+ 
     # User progress fields
     streak_days = models.IntegerField(
         default=0,

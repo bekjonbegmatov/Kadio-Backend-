@@ -7,4 +7,7 @@ urlpatterns = [
     
     # friendships
     path('friends/add/', views.FriendshipViewSet.as_view()),
+    path('friends/', views.UserFrendsView.as_view()),
+    path('friends/recommendations/', views.UserFrensReomendationView.as_view()),
+    path('friends/requests/', views.UserFrensRequests.as_view()),
 ]
