@@ -55,6 +55,7 @@ def login_user(request):
     user.generate_token()
     return Response(
         data={
+            'id': user.id,
             'username': user.username,
             'email': user.email,
             'token': user.token

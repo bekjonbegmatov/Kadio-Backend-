@@ -62,7 +62,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                             'sender_id': self.user.id,
                             'sender_username': self.user.username,
                             'timestamp': message.timestamp.isoformat(),
-                            'message_id': message.id
+                            'message_id': message.id,
+                            'avatar': self.user.avatar.url if self.user.avatar else None
                         }
                     )
             
@@ -95,7 +96,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'sender_id': event['sender_id'],
             'sender_username': event['sender_username'],
             'timestamp': event['timestamp'],
-            'message_id': event['message_id']
+            'message_id': event['message_id'],
+            'avatar': event['avatar']
         }))
     
     async def typing_indicator(self, event):

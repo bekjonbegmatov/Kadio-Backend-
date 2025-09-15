@@ -4,7 +4,7 @@ from .models import UserModel
 class UserAuthSerializer(ModelSerializer):
     class Meta:
         model = UserModel
-        fields = ['username', 'email', 'password', 'token']
+        fields = ['id', 'username', 'email', 'password', 'token']
         extra_kwargs = {'password': {'write_only': True}}
     
     def create(self, validated_data):
@@ -13,6 +13,7 @@ class UserAuthSerializer(ModelSerializer):
         user.save()
         user.generate_token()  
         return {
+            'id': user.id,
             'username': user.username,
             'email': user.email,
             'token': user.token
