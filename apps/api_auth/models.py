@@ -131,5 +131,67 @@ class UserModel(models.Model):
     def check_password(self, raw_password):
         """Verify if provided password matches stored hash"""
         return check_password(raw_password, self.password)
+    
+    def get_purchased_courses(self):
+        """Получить все купленные курсы пользователя"""
+        from apps.cours.models import UserCourseModel
+        return UserCourseModel.objects.filter(
+            user=self, 
+            is_purchased=True
+        ).select_related('course')
+    
+    def get_available_courses(self):
+        """Получить все доступные курсы для пользователя по уровню"""
+        from apps.cours.models import CourseModel
+        return CourseModel.objects.filter(min_level__lte=self.level)
+    
+    def get_completed_courses(self):
+        """Получить все завершенные курсы пользователя"""
+        from apps.cours.models import UserCourseModel
+        return UserCourseModel.objects.filter(
+            user=self, 
+            is_completed=True
+        ).select_related('course')
+    
+    def can_purchase_course(self, course):
+        """Проверить, может ли пользователь купить курс"""
+        # Проверяем уровень
+        if self.level < course.min_level:
+            return False, "Недостаточный уровень"
+        
+        # Проверяем, не куплен ли уже курс
+        from apps.cours.models import UserCourseModel
+        if UserCourseModel.objects.filter(user=self, course=course, is_purchased=True).exists():
+            return False, "Курс уже куплен"
+        
+        # Проверяем баланс (используем coins как основную валюту для курсов)
+        if self.coins < course.price:
+            return False, "Недостаточно монет"
+        
+        return True, "Можно купить"
+    
+    def purchase_course(self, course):
+        """Купить курс"""
+        can_purchase, message = self.can_purchase_course(course)
+        if not can_purchase:
+            return False, message
+        
+        # Списываем монеты
+        self.coins -= course.price
+        self.save()
+        
+        # Создаем запись о покупке курса
+        from apps.cours.models import UserCourseModel
+        user_course, created = UserCourseModel.objects.get_or_create(
+            user=self,
+            course=course,
+            defaults={'is_purchased': True}
+        )
+        
+        if not created:
+            user_course.is_purchased = True
+            user_course.save()
+        
+        return True, "Курс успешно куплен"
 
 

@@ -106,8 +106,18 @@ class ChatMessagesView(APIView):
         page = int(request.GET.get('page', 1))
         page_size = int(request.GET.get('page_size', 50))
         
-        # Получаем сообщения с пагинацией
-        messages = room.messages.all()[(page-1)*page_size:page*page_size]
+        # Получаем сообщения с пагинацией (последние сообщения)
+        total_messages = room.messages.count()
+        
+        if page == 1:
+            # Для первой страницы возвращаем последние сообщения
+            messages = room.messages.order_by('-timestamp')[:page_size]
+            messages = list(reversed(messages))  # Возвращаем в хронологическом порядке
+        else:
+            # Для остальных страниц загружаем более старые сообщения
+            offset = (page - 1) * page_size
+            messages = room.messages.order_by('-timestamp')[offset:offset + page_size]
+            messages = list(reversed(messages))  # Возвращаем в хронологическом порядке
         
         # Отмечаем сообщения как прочитанные
         unread_messages = room.messages.filter(

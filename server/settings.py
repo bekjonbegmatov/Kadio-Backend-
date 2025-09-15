@@ -49,7 +49,8 @@ INSTALLED_APPS = [
     'apps.user_activitys',  # User Activitys
     'apps.gamedification',  # Gamedification System
     'apps.chat',  # Chat System
-    
+    'apps.cours', # Courses
+
 ]
 
 MIDDLEWARE = [
