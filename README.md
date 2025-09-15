@@ -55,7 +55,34 @@ python manage.py createsuperuser
 python manage.py collectstatic --noinput
 ```
 
-### 7. Запуск сервера
+### 7. Настройка и запуск Redis (для системы конкурсов)
+
+Для работы системы конкурсов необходим Redis:
+
+```bash
+# Установка Redis (macOS с Homebrew)
+brew install redis
+
+# Запуск Redis
+brew services start redis
+
+# Или запуск вручную
+redis-server
+```
+
+### 8. Запуск Celery (для фоновых задач)
+
+Для автоматического завершения конкурсов запустите Celery в отдельных терминалах:
+
+```bash
+# Терминал 1: Celery Worker
+celery -A server worker --loglevel=info
+
+# Терминал 2: Celery Beat (планировщик задач)
+celery -A server beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+```
+
+### 9. Запуск сервера
 
 Запуск сервера осуществляется с помощью Uvicorn:
 
