@@ -252,4 +252,58 @@ class UserFrensReomendationView(APIView):
         elif isinstance(interests_data, list):
             return [item.lower().strip() for item in interests_data if item]
         return []
+
+
+class UserSearchView(APIView):
+    @token_required
+    def get(self, request):
+        """Поиск пользователей по email, имени и интересам"""
+        query = request.query_params.get('q', '').strip()
+        
+        if not query:
+            return Response({"error": "Search query is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Исключаем текущего пользователя из результатов поиска
+        users = UserModel.objects.exclude(id=request.user.id)
+        
+        # Поиск по email, имени пользователя и полному имени
+        name_email_filter = Q(email__icontains=query) | Q(username__icontains=query) | Q(full_name__icontains=query)
+        
+        # Поиск по интересам
+        interests_filter = Q()
+        query_lower = query.lower()
+        
+        # Ищем пользователей, у которых в интересах есть совпадения
+        for user in UserModel.objects.exclude(id=request.user.id):
+            if user.interests:
+                user_interests = self._extract_interests(user.interests)
+                if any(query_lower in interest for interest in user_interests):
+                    interests_filter |= Q(id=user.id)
+        
+        # Объединяем все фильтры
+        final_filter = name_email_filter | interests_filter
+        search_results = users.filter(final_filter).distinct()[:20]  # Ограничиваем результаты
+        
+        # Сериализуем результаты
+        from .serializers import UserBasicSerializer
+        serializer = UserBasicSerializer(search_results, many=True, context={'request': request})
+        
+        return Response({
+            "results": serializer.data,
+            "count": len(serializer.data)
+        }, status=status.HTTP_200_OK)
+    
+    def _extract_interests(self, interests_data):
+        """Извлекает список интересов из JSON поля"""
+        if isinstance(interests_data, dict):
+            all_interests = []
+            for category, items in interests_data.items():
+                if isinstance(items, list):
+                    all_interests.extend([item.lower().strip() for item in items if item])
+                elif isinstance(items, str):
+                    all_interests.append(items.lower().strip())
+            return all_interests
+        elif isinstance(interests_data, list):
+            return [item.lower().strip() for item in interests_data if item]
+        return []
         
