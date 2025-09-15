@@ -47,13 +47,18 @@ class Command(BaseCommand):
                 
                 if giveaway.winner:
                     winner = giveaway.winner
-                    winner.coins += giveaway.prize_fond
+                    winner.diamonds += giveaway.prize_fond
                     winner.save()
+                    
+                    # Собранные средства от участников идут организатору
+                    if giveaway.collected_funds > 0:
+                        giveaway.organizator.diamonds += giveaway.collected_funds
+                        giveaway.organizator.save()
                     
                     self.stdout.write(
                         self.style.SUCCESS(
                             f'Completed giveaway "{giveaway.title}". '
-                            f'Winner: {winner.email}, Prize: {giveaway.prize_fond} coins'
+                            f'Winner: {winner.email}, Prize: {giveaway.prize_fond} diamonds'
                         )
                     )
                 else:
@@ -100,13 +105,18 @@ class Command(BaseCommand):
                 
                 if giveaway.winner:
                     winner = giveaway.winner
-                    winner.coins += giveaway.prize_fond
+                    winner.diamonds += giveaway.prize_fond
                     winner.save()
+                    
+                    # Собранные средства от участников идут организатору
+                    if giveaway.collected_funds > 0:
+                        giveaway.organizator.diamonds += giveaway.collected_funds
+                        giveaway.organizator.save()
                     
                     self.stdout.write(
                         self.style.SUCCESS(
                             f'  ✓ Completed "{giveaway.title}". '
-                            f'Winner: {winner.email}, Prize: {giveaway.prize_fond} coins'
+                            f'Winner: {winner.email}, Prize: {giveaway.prize_fond} diamonds'
                         )
                     )
                 else:
