@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
+from django.db import models
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -164,11 +165,12 @@ class LessonCommentsView(APIView):
 
 
 class UserCoursesView(APIView):
-    """Получение курсов пользователя (требует авторизации)"""
+    """Получение купленных курсов пользователя (требует авторизации)"""
     
     @token_required
     def get(self, request):
-        user_courses = request.user.enrolled_courses.all().order_by('-created_at')
+        # Получаем только купленные курсы
+        user_courses = request.user.enrolled_courses.filter(is_purchased=True).order_by('-created_at')
         serializer = UserCourseSerializer(user_courses, many=True)
         return Response({
             'success': True,
@@ -378,13 +380,79 @@ def courses_by_level(request, min_level):
 
 @api_view(['GET'])
 @token_required
+def all_courses_with_purchase_info(request):
+    """Получение всех курсов с информацией о покупке для авторизованного пользователя"""
+    from .models import UserCourseModel
+    
+    # Получаем все курсы
+    courses = CourseModel.objects.all().order_by('-created_at')
+    
+    # Получаем ID купленных курсов пользователя
+    purchased_course_ids = set(UserCourseModel.objects.filter(
+        user=request.user, 
+        is_purchased=True
+    ).values_list('course_id', flat=True))
+    
+    # Сериализуем курсы
+    serializer = CourseListSerializer(courses, many=True, context={'request': request})
+    courses_data = serializer.data
+    
+    # Добавляем информацию о покупке к каждому курсу
+    for course_data in courses_data:
+        course_data['is_purchased'] = course_data['id'] in purchased_course_ids
+        course_data['can_purchase'] = (
+            course_data['id'] not in purchased_course_ids and
+            (course_data['price'] == 0 or course_data['price'] <= request.user.coins) and
+            course_data['min_level'] <= request.user.level
+        )
+    
+    return Response({
+        'success': True,
+        'data': courses_data,
+        'count': courses.count(),
+        'user_level': request.user.level,
+        'user_balance': {
+            'coins': request.user.coins,
+            'diamonds': request.user.diamonds
+        }
+    })
+
+
+@api_view(['GET'])
+@token_required
 def user_available_courses(request):
-    """Получение доступных курсов для пользователя (требует авторизации)"""
-    available_courses = request.user.get_available_courses()
+    """Получение курсов, доступных для покупки пользователем (требует авторизации)"""
+    from .models import UserCourseModel
+    
+    # Получаем курсы, которые пользователь может купить:
+    # 1. Подходят по уровню
+    # 2. Пользователь может их купить (достаточно средств или бесплатные)
+    # 3. Пользователь их еще не купил
+    
+    # Получаем ID уже купленных курсов
+    purchased_course_ids = UserCourseModel.objects.filter(
+        user=request.user, 
+        is_purchased=True
+    ).values_list('course_id', flat=True)
+    
+    # Фильтруем курсы
+    available_courses = CourseModel.objects.filter(
+        min_level__lte=request.user.level  # Подходят по уровню
+    ).exclude(
+        id__in=purchased_course_ids  # Исключаем уже купленные
+    ).filter(
+        # Либо бесплатные, либо пользователь может купить
+        models.Q(price=0) | models.Q(price__lte=request.user.coins)
+    ).order_by('-created_at')
+    
     serializer = CourseListSerializer(available_courses, many=True, context={'request': request})
     return Response({
         'success': True,
         'data': serializer.data,
         'count': available_courses.count(),
-        'user_level': request.user.level
+        'user_level': request.user.level,
+        'user_balance': {
+            'coins': request.user.coins,
+            'diamonds': request.user.diamonds
+        }
     })

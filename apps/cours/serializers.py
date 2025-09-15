@@ -61,7 +61,7 @@ class CourseSerializer(ModelSerializer):
     
     def get_is_purchased(self, obj):
         request = self.context.get('request')
-        if request and request.user and request.user.is_authenticated:
+        if request and hasattr(request, 'user') and isinstance(request.user, UserModel):
             return UserCourseModel.objects.filter(
                 user=request.user, 
                 course=obj, 
@@ -71,13 +71,13 @@ class CourseSerializer(ModelSerializer):
     
     def get_is_available(self, obj):
         request = self.context.get('request')
-        if request and request.user and request.user.is_authenticated:
+        if request and hasattr(request, 'user') and isinstance(request.user, UserModel):
             return request.user.level >= obj.min_level
         return True  # Курсы доступны для просмотра всем
     
     def get_progress(self, obj):
         request = self.context.get('request')
-        if request and request.user and request.user.is_authenticated:
+        if request and hasattr(request, 'user') and isinstance(request.user, UserModel):
             try:
                 user_course = UserCourseModel.objects.get(
                     user=request.user, 
@@ -130,7 +130,7 @@ class CourseListSerializer(ModelSerializer):
     
     def get_is_purchased(self, obj):
         request = self.context.get('request')
-        if request and request.user and request.user.is_authenticated:
+        if request and hasattr(request, 'user') and isinstance(request.user, UserModel):
             return UserCourseModel.objects.filter(
                 user=request.user, 
                 course=obj, 
@@ -140,7 +140,7 @@ class CourseListSerializer(ModelSerializer):
     
     def get_is_available(self, obj):
         request = self.context.get('request')
-        if request and request.user and request.user.is_authenticated:
+        if request and hasattr(request, 'user') and isinstance(request.user, UserModel):
             return request.user.level >= obj.min_level
         return True  # Курсы доступны для просмотра всем
 

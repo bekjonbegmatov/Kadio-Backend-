@@ -18,6 +18,7 @@ urlpatterns = [
     # Endpoints для авторизованных пользователей
     path('user/courses/', views.UserCoursesView.as_view(), name='user-courses'),
     path('user/courses/available/', views.user_available_courses, name='user-available-courses'),
+    path('user/courses/all/', views.all_courses_with_purchase_info, name='all-courses-with-purchase-info'),
     path('user/courses/<int:course_id>/progress/', views.UserCourseProgressView.as_view(), name='user-course-progress'),
     
     # Покупка курсов и завершение уроков
