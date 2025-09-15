@@ -41,12 +41,14 @@ INSTALLED_APPS = [
     # Apps from Modules 
     'rest_framework',
     'corsheaders',
+    'channels',
     
     # Project Apps 
     'apps.api',
     'apps.api_auth',  # Auth System
     'apps.user_activitys',  # User Activitys
     'apps.gamedification',  # Gamedification System
+    'apps.chat',  # Chat System
     
 ]
 
@@ -203,3 +205,13 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Channels Configuration
+ASGI_APPLICATION = 'server.asgi.application'
+
+# Channel Layers (In-memory for development)
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer'
+    }
+}
