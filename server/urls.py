@@ -26,6 +26,7 @@ urlpatterns = [
     path('api/activitys/', include('apps.user_activitys.urls')),
     path('api/chat/', include('apps.chat.urls')),
     path('api/cours/', include('apps.cours.urls')),
+    path('api/feed/', include('apps.feed.urls')),
 ]
 
 # Serve media files during development

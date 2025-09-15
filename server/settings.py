@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'apps.gamedification',  # Gamedification System
     'apps.chat',  # Chat System
     'apps.cours', # Courses
+    'apps.feed',  # Feed System
     
     # Celery
     'django_celery_beat',
