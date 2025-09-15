@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'apps.api',
     'apps.api_auth',  # Auth System
     'apps.user_activitys',  # User Activitys
+    'apps.gamedification',  # Gamedification System
     
 ]
 
